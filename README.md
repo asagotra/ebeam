@@ -1,4 +1,5 @@
 # To run the model
-# Run model.py file or VVG_Bilinear ipython file
+
+Run model.py file or VGG_Bilinear ipython file
 
 
