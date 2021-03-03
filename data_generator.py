@@ -155,7 +155,7 @@ def Params(Structure ,No_):
         a2_list = np.random.uniform(low = 0.8, high = 2.1, size=No_)
         phi_list = np.random.uniform(low = 1, high = np.pi/2-1e-1, size = No_//2)
         phi_list = np.append(phi_list,np.random.uniform(low = np.pi/2+1e-1, high = np.pi*.8-1e-1, size = No_//2))
-    elif Structure == "Obilique":
+    elif Structure == "Oblique":
         a1_list = np.random.uniform(low = 0.8, high = 2.2,size = No_)
         a2_list = a1_list
         phi_list = np.random.uniform(low = .5, high = np.pi/2-1e-3, size = No_//2)
@@ -190,7 +190,7 @@ def Params(Structure ,No_):
         a2_list = np.random.uniform(low = 0.8, high = 2.1, size=No_)
         phi_list = np.random.uniform(low = 1, high = np.pi/2-1e-1, size = No_//2)
         phi_list = np.append(phi_list,np.random.uniform(low = np.pi/2+1e-3, high = np.pi*.8-1e-3, size = No_//2))
-    elif Structure == "Obilique":
+    elif Structure == "Oblique":
         a1_list = np.random.uniform(low = 0.8, high = 2.2,size = No_)
         a2_list = a1_list
         phi_list = np.random.uniform(low = .5, high = np.pi/2-1e-3, size = No_//2)
@@ -208,7 +208,7 @@ import os
 
 def save_img(No_):
     directory = "./data_str/"
-    Struct = ["Rectangular","Hexagonal","Centred","Square","Obilique","Noise"]
+    Struct = ["Rectangular","Hexagonal","Centred","Square","Oblique","Noise"]
 #     Struct = ["Centred"]
     for i in Struct:
         print("Current_Structure:"+i)
@@ -232,14 +232,14 @@ def save_img(No_):
                 img_ = atom_to_img(distorted)
             elif i == "Square" or i == "Hexagonal" or i == "Centred":
                 distorted = distortions(latt, a1_, a2_)
-                img_ =np.random.random_integers(500,1024,1)[0]
+                img_ =np.random.randint(500,1024,1)[0]
                 img_ = atom_to_img(distorted,img_dim =img_)             
             else:
                 distorted = distortions(latt, a1_, a2_)
-                img_1 =np.random.random_integers(500,1024,1)[0]
-                img_2  = img_1 + np.random.random_integers(-200,200,1)[0]
+                img_1 =np.random.randint(500,1024,1)[0]
+                img_2  = img_1 + np.random.randint(-200,200,1)[0]
                 if  np.abs(img_1-img_2)<10 and (img_2>1024):
-                    img_2  = img_1 + np.random.random_integers(-100,100,1)[0]
+                    img_2  = img_1 + np.random.randint(-100,100,1)[0]
                 img_ = atom_to_img(distorted,img_dim_1 = img_1,img_dim_2 =img_2)
             size = np.random.randint(low = 3, high = 7, size = 1)[0] 
             

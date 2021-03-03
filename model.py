@@ -3,18 +3,17 @@
 # A Python script to run the model.
 import random
 import numpy as np
-import keras
-import keras.layers
-import keras.applications
-import keras.backend
-import keras.preprocessing.image
-import keras.utils
+import tensorflow.keras.layers
+import tensorflow.keras.applications
+import tensorflow.keras.backend
+import tensorflow.keras.preprocessing.image
+import tensorflow.keras.utils
 import tensorflow as tf
 from coord import CoordinateChannel2D
-from keras.layers import Input,Conv2D
-from keras.initializers import glorot_normal
-from keras.optimizers import Adam
-from keras.callbacks import ModelCheckpoint,TensorBoard,ReduceLROnPlateau
+from tensorflow.keras.layers import Input,Conv2D
+from tensorflow.keras.initializers import glorot_normal
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import ModelCheckpoint,TensorBoard,ReduceLROnPlateau
 from dataLoader import data_loader
 
 def outer_product(x):
@@ -26,7 +25,7 @@ def outer_product(x):
                 list of 2 tensors
                 , assuming each of which has shape = (size_minibatch, total_pixels, size_filter)
     """
-    return keras.backend.batch_dot(x[0], x[1], axes=[1,1]) / x[0].get_shape().as_list()[1] 
+    return tensorflow.keras.backend.batch_dot(x[0], x[1], axes=[1,1]) / x[0].get_shape().as_list()[1] 
 
 def signed_sqrt(x):
     """
@@ -36,7 +35,7 @@ def signed_sqrt(x):
             x
                 a tensor
     """
-    return keras.backend.sign(x) * keras.backend.sqrt(keras.backend.abs(x) + 1e-9)
+    return tensorflow.keras.backend.sign(x) * tensorflow.keras.backend.sqrt(tensorflow.keras.backend.abs(x) + 1e-9)
 
 def L2_norm(x, axis=-1):
     """
@@ -46,7 +45,7 @@ def L2_norm(x, axis=-1):
             x
                 a tensor
     """
-    return keras.backend.l2_normalize(x, axis=axis)
+    return tensorflow.keras.backend.l2_normalize(x, axis=axis)
 
 
 def build_model(
@@ -68,7 +67,7 @@ def build_model(
     ,**kwargs
 ):
     
-    keras.backend.clear_session()
+    tensorflow.keras.backend.clear_session()
     
     print("-------------------------------")
     print("parameters:")
@@ -82,7 +81,7 @@ def build_model(
     ###
     tensor_input = Input(shape=(128, 128, 1))
     out = CoordinateChannel2D()(tensor_input)
-    model_detector = keras.applications.vgg19.VGG19(input_tensor = out ,include_top=False,weights="imagenet")
+    model_detector = tensorflow.keras.applications.vgg19.VGG19(input_tensor = out ,include_top=False,weights="imagenet")
     
 
     ### 
@@ -103,7 +102,7 @@ def build_model(
         
     
     # rehape to (minibatch_size, total_pixels, filter_size)
-    x_detector = keras.layers.Reshape(
+    x_detector = tensorflow.keras.layers.Reshape(
             [
                 shape_detector[1] * shape_detector[2] , shape_detector[-1]
             ]
@@ -111,7 +110,7 @@ def build_model(
     if flg_debug:
         print("x_detector shape after rehsape ops : {}".format(x_detector.shape))
         
-    x_extractor = keras.layers.Reshape(
+    x_extractor = tensorflow.keras.layers.Reshape(
             [
                 shape_extractor[1] * shape_extractor[2] , shape_extractor[-1]
             ]
@@ -121,7 +120,7 @@ def build_model(
         
         
     # outer products of features, output shape=(minibatch_size, filter_size_detector*filter_size_extractor)
-    x = keras.layers.Lambda(outer_product)(
+    x = tensorflow.keras.layers.Lambda(outer_product)(
         [x_detector, x_extractor]
     )
     if flg_debug:
@@ -129,18 +128,18 @@ def build_model(
         
         
     # rehape to (minibatch_size, filter_size_detector*filter_size_extractor)
-    x = keras.layers.Reshape([shape_detector[-1]*shape_extractor[-1]])(x)
+    x = tensorflow.keras.layers.Reshape([shape_detector[-1]*shape_extractor[-1]])(x)
     if flg_debug:
         print("x shape after rehsape ops : {}".format(x.shape))
         
         
     # signed square-root 
-    x = keras.layers.Lambda(signed_sqrt)(x)
+    x = tensorflow.keras.layers.Lambda(signed_sqrt)(x)
     if flg_debug:
         print("x shape after signed-square-root ops : {}".format(x.shape))
         
     # L2 normalization
-    x = keras.layers.Lambda(L2_norm)(x)
+    x = tensorflow.keras.layers.Lambda(L2_norm)(x)
     if flg_debug:
         print("x shape after L2-Normalization ops : {}".format(x.shape))
 
@@ -152,18 +151,18 @@ def build_model(
 
     if name_initializer != None:
             name_initializer = eval(name_initializer+"()")
-    x = keras.layers.Dense(500)(x)
-    x = keras.layers.Dropout(.2)(x,training =True)
-    x = keras.layers.Dense(128)(x)
-    x = keras.layers.Dropout(.2)(x,training =True)
-    x = keras.layers.Dense(
+    x = tensorflow.keras.layers.Dense(500)(x)
+    x = tensorflow.keras.layers.Dropout(.2)(x,training =True)
+    x = tensorflow.keras.layers.Dense(128)(x)
+    x = tensorflow.keras.layers.Dropout(.2)(x,training =True)
+    x = tensorflow.keras.layers.Dense(
             units=no_class
-            ,kernel_regularizer=keras.regularizers.l2(rate_decay_weight)
+            ,kernel_regularizer=tensorflow.keras.regularizers.l2(rate_decay_weight)
             ,kernel_initializer=name_initializer
         )(x)
     if flg_debug:
         print("x shape after Dense ops : {}".format(x.shape))
-    tensor_prediction = keras.layers.Activation(name_activation_logits)(x)
+    tensor_prediction = tensorflow.keras.layers.Activation(name_activation_logits)(x)
     if flg_debug:
         print("prediction shape : {}".format(tensor_prediction.shape))
 
@@ -172,7 +171,7 @@ def build_model(
     ### 
     ### compile model
     ###
-    model_bilinear = keras.models.Model(
+    model_bilinear = tensorflow.keras.models.Model(
                         inputs=[tensor_input]
                         , outputs=[tensor_prediction]
                     )
@@ -184,15 +183,15 @@ def build_model(
         
         
     # define optimizers
-    opt_adam = keras.optimizers.adam(
+    opt_adam = tensorflow.keras.optimizers.adam(
                     lr=rate_learning
                     , decay=rate_decay_learning
                 )
-    opt_rms = keras.optimizers.RMSprop(
+    opt_rms = tensorflow.keras.optimizers.RMSprop(
                     lr=rate_learning
                     , decay=rate_decay_learning
                 )
-    opt_sgd = keras.optimizers.SGD(
+    opt_sgd = tensorflow.keras.optimizers.SGD(
                     lr=rate_learning
                     , decay=rate_decay_learning
                     , momentum=0.9
